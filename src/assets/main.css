@@ -10,4 +10,5 @@
 
 body {
   @apply bg-light-1 dark:bg-dark-1 text-dark-1 dark:text-light-1 font-text;
+  transition: background-color 0.3s ease-in-out, color 0.3 ease-in-out;
 }

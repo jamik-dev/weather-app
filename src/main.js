@@ -1,3 +1,4 @@
+import VueApexCharts from "vue3-apexcharts";
 import './assets/main.css'
 
 import { createApp } from 'vue'
@@ -10,5 +11,6 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(VueApexCharts)
 
 app.mount('#app')
