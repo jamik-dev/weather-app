@@ -9,7 +9,7 @@
         <div>
           <ul class="flex gap-4">
             <li v-for="(day, index) in days" :key="day.index" @mouseenter="updateActiveDay(index)"
-              :class="{ 'w-56 bg-blue-400 dark:!bg-[#0C66E4]': day.active }"
+              :class="{ 'w-56 !bg-blue-400 dark:!bg-[#0C66E4]': day.active }"
               class="weather-card cursor-pointer relative overflow-hidden bg-light-2 w-28 h-48 dark:bg-dark-2 rounded-3xl p-4">
               <h3 class="text-lg text-center">{{ day.day }}</h3>
               <div class="gap-4 relative">
@@ -25,8 +25,8 @@
             </li>
           </ul>
         </div>
-        <div class="mt-4">
-          <div class="rounded-3xl relative w-full bg-light-2 dark:bg-dark-2 p-4">
+        <div class="mt-4 ">
+          <div class="rounded-3xl overflow-auto relative w-full bg-light-2 dark:bg-dark-2 p-4">
             <img class="absolute w-24 top-32 left-52 z-10 pointer-events-none"
               :src="`./weather-icons/fill/all/clear-day.svg`" alt="Karakalpak">
             <img class="absolute w-20 top-52 left-[440px] z-10 pointer-events-none"
