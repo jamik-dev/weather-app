@@ -100,6 +100,7 @@ const options = ref({
       show: false
     },
     foreColor: foreColor.value,
+    fontFamily: 'Montserrat'
   },
   plotOptions: {
     bar: {
