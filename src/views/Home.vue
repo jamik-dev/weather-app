@@ -1,4 +1,5 @@
 <template>
+  <Loader />
   <section id="weather" class="p-12 max-w-[1340px] mx-auto">
     <div class="flex justify-between items-center">
       <h1 class="text-5xl font-number tracking-wider font-semibold mb-6">{{ title }}, Uzbekistan</h1>
@@ -8,62 +9,36 @@
       <div class="col-span-8">
         <div>
           <ul class="flex gap-4">
-            <li v-for="(day, index) in days" :key="day.index" @mouseenter="updateActiveDay(index)"
-              :class="{ 'w-56 !bg-blue-400 dark:!bg-[#0C66E4]': day.active }"
+            <li v-for="(day, index) in store.chosen_daily" :key="day.index" @mouseenter="updateActiveDay(index)"
+              :class="{ 'w-56 !bg-blue-200 dark:!bg-[#0C66E4]': day.active }"
               class="weather-card cursor-pointer relative overflow-hidden bg-light-2 w-28 h-48 dark:bg-dark-2 rounded-3xl p-4">
-              <h3 class="text-lg text-center">{{ day.day }}</h3>
+              <h3 class="text-lg text-center">{{ day.dt }}</h3>
               <div class="gap-4 relative">
-                <img class="w-20" :src="`./weather-icons/fill/all/${day.icon}.svg`" alt="">
+                <img class="w-20" :src="`./weather-icons/fill/all/${day.weather[0].icon}.svg`" alt="">
                 <h4 :class="{ 'translate-x-4 -translate-y-16 scale-150': day.active }"
                   class="font-number duration-200 absolute left-1/2 -translate-x-1/2 text-5xl text-center">
-                  {{ day.temp }}&#176;</h4>
+                  {{ day.temp.day }}&#176;</h4>
               </div>
-              <div :class="{ 'left-8': day.active }" class="absolute duration-200 -left-20 mt-2">
-                <p class="text-sm">{{ day.desc }}</p>
-                <p class="text-sm">0% chance</p>
+              <div :class="{ 'left-10': day.active }" class="absolute duration-200 -left-32 mt-2">
+                <p class="text-sm">{{ day.weather[0].description }}</p>
+                <p class="text-sm">{{ day.humidity }}% humidity</p>
               </div>
             </li>
           </ul>
         </div>
         <div class="mt-4 ">
           <div class="rounded-3xl overflow-auto relative w-full bg-light-2 dark:bg-dark-2 p-4">
-            <img class="absolute w-24 top-32 left-52 z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/clear-day.svg`" alt="Karakalpak">
-            <img class="absolute w-20 top-52 left-[440px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/rain.svg`" alt="Navai">
-            <img class="absolute w-16 top-[320px] left-[400px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/snow.svg`" alt="Bukhara">
-            <img class="absolute w-12 top-[250px] left-[270px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/fog-day.svg`" alt="Khorazm">
-            <img class="absolute w-12 top-[350px] left-[540px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/overcast.svg`" alt="Samarkand">
-            <img class="absolute w-12 top-[410px] left-[530px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/overcast-day.svg`" alt="Kashkadarya">
-            <img class="absolute w-12 top-[460px] left-[590px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/rain.svg`" alt="Surkhandarya">
-            <img class="absolute w-12 top-[320px] left-[590px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/rain.svg`" alt="Jizzakh">
-            <img class="absolute w-8 top-[320px] left-[650px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/clear-day.svg`" alt="Sirdarya">
-            <img class="absolute w-8 top-[290px] left-[700px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/snow.svg`" alt="Tashkent">
-            <img class="absolute w-8 top-[260px] left-[690px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/wind.svg`" alt="Tashkent city">
-            <img class="absolute w-10 top-[285px] left-[765px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/fog-day.svg`" alt="Namangan">
-            <img class="absolute w-8 top-[320px] left-[770px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/rain.svg`" alt="Fergana">
-            <img class="absolute w-8 top-[300px] left-[820px] z-10 pointer-events-none"
-              :src="`./weather-icons/fill/all/rain.svg`" alt="Andijan">
+            <img v-for="region in store.weather_all" :style="`width: calc(4*${region.width}px); top: ${region.top}px; left: ${region.left}px`" :key="region.code" class="absolute z-10 pointer-events-none"
+              :src="`./weather-icons/fill/all/${region.weather[0].icon}.svg`" :alt="region.name">
 
             <svg xmlns:mapsvg="http://mapsvg.com" xmlns:dc="http://purl.org/dc/elements/1.1/"
               xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg"
               xmlns="http://www.w3.org/2000/svg" mapsvg:geoViewBox="55.997099 45.594337 73.133286 37.176101"
               class="-rotate- translate-x-16" width="792.4873" height="516.87848">
 
-              <path v-for="region in regions" :key="region.id" @click="mapClick(region.title)"
+              <path v-for="region in regions" :key="region.id" @click="getMapWeather(region.id)"
                 style="transition: fill 0.3s ease"
-                class="cursor-pointer hover:fill-blue-400 hover:dark:fill-[#0C66E4] active:fill-[#fff] fill-[#738496]" stroke="transparent"
+                class="cursor-pointer hover:fill-blue-400 hover:dark:fill-[#0C66E4] active:!fill-[#fff] fill-[#738496]" stroke="transparent"
                 :d="region.d" :title="region.title" :id="region.id" />
             </svg>
           </div>
@@ -71,47 +46,17 @@
       </div>
       <div class="col-span-2">
         <div>
-          <apexchart width="250" height="194" type="bar" :options="options" :series="series"></apexchart>
+          <apexchart ref="bar" width="250" height="194" type="bar" :options="options" :series="series"></apexchart>
         </div>
-        <ul class="flex flex-col gap-4">
-          <li class="rounded-3xl w-full flex justify-between bg-light-2 dark:bg-dark-2 p-4">
+        <ul class="flex flex-col gap-4 mt-2 h-[530px] overflow-auto">
+          <li v-for="region in store.weather_all" class="rounded-3xl w-full flex justify-between bg-light-2 dark:bg-dark-2 p-4">
             <div>
-              <h4 class="font-number text-4xl">13&#176;</h4>
-              <p class="font-number text-xl">Tashkent</p>
-              <p class="text-sm text-gray-700 dark:text-gray-400">Mostly sunny</p>
+              <h4 class="font-number text-4xl">{{region.temp.day}}&#176;</h4>
+              <p class="font-number text-xl">{{ region.name }}</p>
+              <p class="text-sm text-gray-700 dark:text-gray-400">{{ region.weather[0].description }}</p>
             </div>
             <div class="flex flex-col items-center justify-center">
-              <img class="w-20" :src="`./weather-icons/fill/all/rain.svg`" alt="Tashkent">
-            </div>
-          </li>
-          <li class="rounded-3xl w-full flex justify-between bg-light-2 dark:bg-dark-2 p-4">
-            <div>
-              <h4 class="font-number text-4xl">-2&#176;</h4>
-              <p class="font-number text-xl">Bukhara</p>
-              <p class="text-sm text-gray-700 dark:text-gray-400">Mostly sunny</p>
-            </div>
-            <div class="flex flex-col items-center justify-center">
-              <img class="w-20" :src="`./weather-icons/fill/all/snow.svg`" alt="Tashkent">
-            </div>
-          </li>
-          <li class="rounded-3xl w-full flex justify-between bg-light-2 dark:bg-dark-2 p-4">
-            <div>
-              <h4 class="font-number text-4xl">2&#176;</h4>
-              <p class="font-number text-xl">Navai</p>
-              <p class="text-sm text-gray-700 dark:text-gray-400">Mostly sunny</p>
-            </div>
-            <div class="flex flex-col items-center justify-center">
-              <img class="w-20" :src="`./weather-icons/fill/all/cloudy.svg`" alt="Tashkent">
-            </div>
-          </li>
-          <li class="rounded-3xl w-full flex justify-between bg-light-2 dark:bg-dark-2 p-4">
-            <div>
-              <h4 class="font-number text-4xl">5&#176;</h4>
-              <p class="font-number text-xl">Fergana</p>
-              <p class="text-sm text-gray-700 dark:text-gray-400">Mostly sunny</p>
-            </div>
-            <div class="flex flex-col items-center justify-center">
-              <img class="w-20" :src="`./weather-icons/fill/all/clear-day.svg`" alt="Tashkent">
+              <img class="w-20" :src="`./weather-icons/fill/all/${region.weather[0].icon}.svg`" :alt="region.name">
             </div>
           </li>
         </ul>
@@ -121,18 +66,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Toggle from '@/components/Toggle.vue'
-const title = ref('Tashkent')
-const days = ref([
-  { day: 'Mon', icon: 'clear-day', temp: 10, desc: 'Sunny', chance: 0, active: true },
-  { day: 'Tue', icon: 'snow', temp: -2, desc: 'Sunny', chance: 0, active: false },
-  { day: 'Wed', icon: 'rain', temp: 2, desc: 'Sunny', chance: 0, active: false },
-  { day: 'Thu', icon: 'fog-day', temp: 7, desc: 'Sunny', chance: 0, active: false },
-  { day: 'Fri', icon: 'overcast', temp: 3, desc: 'Sunny', chance: 0, active: false },
-  { day: 'Sat', icon: 'overcast-day', temp: 5, desc: 'Sunny', chance: 0, active: false },
-  { day: 'Sun', icon: 'haze', temp: 4, desc: 'Sunny', chance: 0, active: false },
-]);
+import { ref, onMounted, watch, computed } from 'vue';
+import { useStore } from '@/stores/store';
+import Toggle from '@/components/Toggle.vue';
+import Loader from '@/components/Loader.vue';
+
+const store = useStore();
+const bar = ref(null);
+const title = ref('Tashkent city')
 
 const regions = ref([
   { id: 'UZ-AN', title: 'Andijan', d: 'm 750.33007,320.40972 -0.11,-3.61 -0.31,-0.84 -4.01,-1.28 -2.25,-0.45 -0.24,0.17 -0.33,0 -9.25,-1.57 -2.24,-3.46 -0.62,-0.65 -3.02,-1.56 -4.16,-0.6 -0.2,1.45 -3.03,-4.48 0,0 1.9,-1.21 -2.2,-2.67 2.03,-1.9 1.19,-0.8 8.59,-2.19 3.68,0.03 0.57,0.26 0.73,0.56 3.33,0.74 1.46,0.15 4.88,-0.44 0.53,-0.27 0.4,-0.45 1.26,-5.87 0,0 0.24,0.15 0.67,-0.01 2.85,-1.35 0.76,-0.18 1.22,-0.92 1.13,-1.24 0.69,-0.07 0.15,0.18 1.32,0.35 0.97,0.68 0.89,0.05 0.79,0.4 0.86,-0.09 0.78,0.17 0.66,0.32 0.26,1.17 -0.1,0.65 -0.82,1.52 0.01,0.22 0.18,0.22 0.15,-0.02 0.46,-0.72 0.23,-0.05 0.24,-0.03 0.47,0.24 0.42,0.39 1.32,2.26 0.58,0.69 0.2,2 0.77,0.55 1.2,0.35 1.33,0.65 1.57,0.58 0.55,-0.2 1.82,0.29 0.94,-0.4 0.92,-0.19 0.68,0.21 2.21,-0.56 0.72,0.02 0.82,0.45 1.52,1.67 0.38,1.05 0.17,0.15 0.66,0.16 0.51,-0.04 0.65,-0.25 0.19,-0.3 0.64,-0.33 0.4,-0.48 0.58,-0.02 0.35,-0.21 -0.15,-0.54 -0.58,-0.4 -0.35,-0.49 0.43,-1.42 0.23,-0.23 0.43,0.01 1.01,1.46 0.9,0.2 1.13,0.76 0.95,-0.52 1.5,0.07 0.43,0.38 0.23,0.97 -0.43,1.74 -0.43,0.61 -0.45,0.31 -2.88,1.21 -1.66,0.24 -0.63,0.87 -1.16,0.8 -1.4,0.78 -0.81,0.17 -0.05,0.23 -0.87,0.2 -1.34,0.74 -1,0.96 -1.54,0.5 -1.13,-0.15 -0.79,0.11 -0.31,0.36 -0.05,0.32 0.14,0.44 0.38,0.46 0.03,0.34 -0.74,0.61 -0.1,0.42 0.18,2.74 -0.07,1.07 -0.65,0.21 -0.52,-0.3 -0.96,-0.98 -1.5,-0.34 -0.32,0.37 -0.05,0.76 -0.87,0.63 -0.14,0.24 -0.21,1.4 -0.58,1.07 -0.67,0.16 -0.42,-0.04 -1.39,-1.12 -1.47,-0.07 -0.69,-0.38 -0.91,-0.87 -0.51,-0.18 -0.68,0.29 -0.21,-0.04 -1.37,-1.67 -0.55,-1 -1.39,-1.17 -0.4,-0.19 -0.98,0.43 -1.1,0.01 -0.4,0.54 0.15,0.28 1.12,0.38 0.32,0.31 0.46,1.03 1.05,0.32 0.41,0.56 -0.04,0.55 -0.35,0.4 -1.03,0.1 -0.27,0.19 -0.17,0.51 0.14,0.45 1.08,-0.11 0.26,0.37 0.23,1.47 0.49,0.53 0.24,0.75 -1.14,2.67 0.28,0.83 -0.07,0.64 -0.17,0.16 -0.3,0.06 -1.48,-0.38 -0.45,-0.27 -1.55,-1.6 -0.65,-0.46 -0.29,-0.1 -0.8,0.3 -0.32,-0.21 -0.5,-0.71 -0.29,-0.21 -0.9,0.01 -0.27,-0.11 -0.18,-0.4 0.33,-1.13 -0.06,-0.25 -0.45,-0.27 z' },
@@ -151,14 +92,43 @@ const regions = ref([
   { id: 'UZ-XO', title: 'Khorazm', d: 'm 282.54007,312.32972 -1.26,-2.86 -0.52,-0.75 -0.69,-0.61 -0.3,-0.81 -0.16,-2.77 -0.46,-0.74 -0.26,-1.03 -1.22,-2.04 -0.09,-1.22 0.16,-1.18 -0.07,-1.98 -0.15,-0.48 -0.25,-2.85 0.23,-1.62 -0.22,-0.4 -0.51,-0.21 -0.18,-0.72 0.02,-0.64 -0.29,-0.81 -0.74,-0.94 -1.47,-0.78 -0.57,-0.11 -0.45,-0.26 -0.3,-0.56 0.19,-0.94 -0.37,-1.05 -0.47,-0.87 -1.22,-0.73 -1.88,-1.98 -1.13,-0.34 -1.49,-1.01 -2.03,-2.41 -0.48,-0.3 -1.27,-0.13 -0.66,-0.23 -0.49,-0.34 -0.41,-0.38 -0.28,-0.95 -0.38,-0.72 -0.85,-0.64 -0.47,-0.01 -1.3,0.57 -1.77,-0.14 -0.74,-0.22 -1.61,-0.9 -1.76,-0.29 -0.52,0.04 -0.47,0.31 -0.82,1.47 0.06,2.65 -0.45,0.8 -0.28,1.57 -0.43,0.91 -0.35,0.39 -0.49,0.33 -1.05,0.16 -0.15,0.14 -1.67,0.19 -0.33,-0.1 -1.32,0.05 -0.2,-0.13 -0.28,0.1 -0.7,-0.16 -3.1,-1.48 -2.13,-2.23 -0.34,-0.15 -2.01,0.18 -1.32,-1.56 -4.91,-0.22 -0.42,0.21 -1.04,-0.07 -2.18,0.32 -2.58,-0.12 -1.68,0.31 -3.93,0.01 -4.76,0.3 -0.88,-0.05 -2.6,0.43 -0.95,-0.06 -0.72,-0.24 -3.24,-1.94 -2.91,-2.6 -6.11,-4.17 -3.37,-1.93 -1.16,-1.04 -0.57,-1.24 -0.02,-0.69 0.16,-0.79 0.04,-2.99 0.28,-1.86 0.38,-0.81 2.14,-2 0.25,-0.61 0,-1.17 -0.27,-0.89 -1.13,-2.02 -1.15,-1.53 -1.85,-2.89 -0.38,-1.5 0.52,-1.24 0.56,-2.25 0.24,-0.14 0.31,0.02 0.9,0.49 1,-0.02 1.98,0.72 1.11,0.53 1.28,1.05 1.19,-0.03 0.78,0.63 0.82,0.27 0.26,-0.4 0.73,0.01 0.26,-0.16 0.03,-0.44 -0.52,-0.7 -1.13,-0.89 -1.16,-1.32 -1.25,-0.57 -1.65,-0.37 -1.39,-0.87 -0.76,-0.85 -0.31,-0.72 0,0 2.67,-5.23 1.9,-0.85 4.26,-1.39 5.28,1.12 0.39,0.48 0.16,0.58 0.04,2.64 0.41,2.45 3.08,5.39 0.38,0.47 0.66,0.65 0.7,0.31 5.17,4.83 3.35,3.9 1.57,1.51 8.23,7.31 5.96,4.54 1.41,0.58 2.16,0.36 0.74,0.29 0.71,0.61 2.01,2.27 0.37,0.87 0.26,1.16 2.25,1.44 1.49,0 0.72,-0.76 0.51,-1.88 1.17,-2.3 0.78,-0.88 1.39,-0.77 0.62,-0.2 3.04,0.01 8.95,2.06 3.52,1.86 3.08,1.91 8,8.81 1.5,2.77 4.56,7.41 0.27,0.22 0.65,0.19 2.55,-1.22 0,0 3.24,3.33 5.91,6.68 0.68,1.15 -0.03,1.54 -0.79,3.8 -4.59,5.13 -6.28,7.61 0,0 z' },
 ])
 
+const foreColor = computed(() => store.theme === 'dark' ? '#ffffff' : '#000000');
+
 const options = ref({
   chart: {
     toolbar: {
       show: false
+    },
+    foreColor: foreColor.value,
+  },
+  plotOptions: {
+    bar: {
+      horizontal: true,
+      borderRadius: 5,
+      borderRadiusApplication: 'end',
+    },
+  },
+  dataLabels: {
+    formatter: function (val, opts) {
+      return val + '°'
     }
   },
   xaxis: {
-    categories: [1991, 1992, 1993, 1994, 1995]
+    categories: ['day', 'eve', 'morn', 'night', 'min', 'max'],
+  },
+  yaxis: {
+    categories: ['day', 'eve', 'morn', 'night', 'min', 'max'],
+    show: true,
+  },
+  tooltip: {
+    enabled: false
+  },
+  grid: {
+    yaxis: {
+      lines: {
+        show: false
+      }
+    }
   },
 })
 
@@ -167,8 +137,28 @@ const series = ref([{
   data: [30, 40, 45, 50, 49]
 }])
 
+watch(() => store.chosen_daily, (val) => {
+  if (val) {
+    series.value[0].data = [val[0].temp.day, val[0].temp.eve, val[0].temp.morn, val[0].temp.night, val[0].temp.min, val[0].temp.max];
+    bar.value.updateSeries([...series.value], true, true);
+  }
+})
+
+watch(() => store.theme, () => {
+  bar.value.updateOptions({
+    chart: {
+      foreColor: foreColor.value
+    }
+  }, true, true);
+});
+
+onMounted(() => {
+  store.getWeatherAllRegions()
+  store.getWeather('UZ-TK');
+})
+
 const updateActiveDay = (index) => {
-  days.value.forEach((day, i) => {
+  store.chosen_daily.forEach((day, i) => {
     if (i === index) {
       day.active = true;
     } else {
@@ -177,8 +167,10 @@ const updateActiveDay = (index) => {
   });
 }
 
-const mapClick = (e) => {
-  title.value = e;
+const getMapWeather = (id) => {
+
+  title.value = regions.value.find((region) => region.id === id).title;
+  store.getWeather(id);
   window.scrollTo({
     top: 0,
     behavior: 'smooth'
