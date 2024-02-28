@@ -38,7 +38,7 @@
 
               <path v-for="region in regions" :key="region.id" @click="getMapWeather(region.id)"
                 style="transition: fill 0.3s ease"
-                class="cursor-pointer hover:!fill-blue-400 hover:dark:fill-[#0C66E4] active:!fill-[#fff] fill-[#738496]" stroke="transparent"
+                class="cursor-pointer hover:fill-blue-400 hover:dark:fill-[#0C66E4] active:!fill-[#fff] fill-[#738496]" stroke="transparent"
                 :d="region.d" :title="region.title" :id="region.id" />
             </svg>
           </div>
@@ -117,7 +117,8 @@ const options = ref({
     categories: ['day', 'eve', 'morn', 'night', 'min', 'max'],
   },
   yaxis: {
-    show: false,
+    categories: ['day', 'eve', 'morn', 'night', 'min', 'max'],
+    show: true,
   },
   tooltip: {
     enabled: false
